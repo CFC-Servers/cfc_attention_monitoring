@@ -1,23 +1,19 @@
 tabbedOutPlys = {}
+tabbedKeyValue = nil
 
-util.AddNetworkString( "tabbedOut" )
-util.AddNetworkString( "tabbedIn" )
-util.AddNetworkString( "sendData" )
+util.AddNetworkString( "CFC_AttentionMonitor_gameHasFocus" )
+util.AddNetworkString( "CFC_AttentionMonitor_sendData" )
 
-net.Receive( "tabbedOut", function( len, pl ) -- Gets the player that tabbed out
-	if table.HasValue( tabbedOutPlys, pl ) then return end
-	table.insert( tabbedOutPlys, pl ) -- Adds the player that tabbed out once
+net.Receive( "CFC_AttentionMonitor_gameHasFocus", function( _, pl ) -- Gets the player that tabbed out
+	hasFocus = net.ReadBool()
+	if not hasFocus and not tabbedOutPlys[pl] then
+		table.insert( tabbedOutPlys, pl )
+		tabbedKeyValue = table.KeyFromValue( tabbedOutPlys, pl )
+	elseif tabbedOutPlys then
+		tabbedOutPlys[ tabbedKeyValue ] = nil
+	end
 
-	net.Start( "sendData" ) -- Sends the list of players to the client
-		net.WriteTable( tabbedOutPlys )
-	net.Broadcast()
-end)
-
-net.Receive("tabbedIn", function( len, pl ) -- Gets the player that tabbed in
-	if not table.HasValue( tabbedOutPlys, pl ) then return end
-	table.RemoveByValue( tabbedOutPlys, pl ) -- Removes the player that tabbed back in
-
-	net.Start( "sendData" ) -- Sends the list of players to the client
+	net.Start( "CFC_AttentionMonitor_sendData" ) -- Sends the list of players to the client
 		net.WriteTable( tabbedOutPlys )
 	net.Broadcast()
 end)
