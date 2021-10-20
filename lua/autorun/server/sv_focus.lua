@@ -1,5 +1,5 @@
-tabbedOutPlys = {}
-tabbedKeyValue = nil
+local tabbedOutPlys = {}
+local tabbedKeyValue = nil
 
 util.AddNetworkString( "CFC_AttentionMonitor_gameHasFocus" )
 util.AddNetworkString( "CFC_AttentionMonitor_sendData" )
