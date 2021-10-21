@@ -17,9 +17,9 @@ net.Receive( "CFC_AttentionMonitor_sendData", function() -- receives the players
 end )
 
 hook.Add( "PostDrawTranslucentRenderables", "afkRenderElements", function()
-	for _, v in ipairs( tabbedOutList ) do -- draws the icon for each tabbed out player
+	for k, _ in pairs( tabbedOutList ) do -- draws the icon for each tabbed out player
 		render.SetColorMaterial() -- Place Holder
-		render.DrawSphere( v:GetPos() + Vector( 0, 0, 75 ), 6,10, 10, Color( 0, 55, 255) ) -- Place Holder
-		render.DrawSphere( v:GetPos() + Vector( 0, 0, 75 ), 4,10, 10, Color( 255, 255, 255) ) -- Place Holder
+		render.DrawSphere( k:GetPos() + Vector( 0, 0, 75 ), 6,10, 10, Color( 0, 55, 255) ) -- Place Holder
+		render.DrawSphere( k:GetPos() + Vector( 0, 0, 75 ), 4,10, 10, Color( 255, 255, 255) ) -- Place Holder
 	end
 end )
