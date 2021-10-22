@@ -3,7 +3,7 @@ local tabbedOutPlys = {}
 util.AddNetworkString( "CFC_AttentionMonitor_gameHasFocus" )
 util.AddNetworkString( "CFC_AttentionMonitor_sendData" )
 
-function gameHasFocusCallback( pl )
+function gameHasFocusCallback( _, pl )
 	local hasFocus = net.ReadBool()
 	if not hasFocus and not tabbedOutPlys[ pl ] then -- Checks to see if it needs to add the player
 		tabbedOutPlys[ pl ] = true
@@ -16,6 +16,4 @@ function gameHasFocusCallback( pl )
 	net.Broadcast()
 end
 
-net.Receive( "CFC_AttentionMonitor_gameHasFocus", function( _, pl )  -- Gets the player that tabbed out
-	gameHasFocusCallback( pl )
-end)
+net.Receive( "CFC_AttentionMonitor_gameHasFocus", gameHasFocusCallback )  -- Gets the player that tabbed out
