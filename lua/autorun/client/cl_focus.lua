@@ -19,8 +19,11 @@ end )
 hook.Add( "PostDrawTranslucentRenderables", "afkRenderElements", function()
 	for ply in pairs( tabbedOutList ) do -- draws the icon for each tabbed out player
 		if not ply:IsValid() then return end
-		render.SetColorMaterial() -- Place Holder
-		render.DrawSphere( ply:GetPos() + Vector( 0, 0, 75 ), 6,10, 10, Color( 0, 55, 255) ) -- Place Holder
-		render.DrawSphere( ply:GetPos() + Vector( 0, 0, 75 ), 4,10, 10, Color( 255, 255, 255) ) -- Place Holder
+		if ply == LocalPlayer() then return end
+
+		local icon = Material( "icon16/monitor.png", "$translucent" )
+
+		render.SetMaterial( icon ) -- Place Holder
+		render.DrawSprite( ply:GetPos() + Vector( 0, 0, 75 ), 16, 16, Color( 225, 225, 225, 255 ) ) -- place Holder
 	end
 end )
