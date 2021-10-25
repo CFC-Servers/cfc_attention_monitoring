@@ -1,6 +1,16 @@
 local tabbedOutList = {}
 local isTabbedOut = false
 
+local function renderables( ply )
+	if not IsValid( ply ) then return end
+	if ply == LocalPlayer() then return end
+
+	local icon = Material( "icon16/monitor.png", "$translucent" )
+
+	render.SetMaterial( icon ) -- Place Holder
+	render.DrawSprite( ply:GetPos() + Vector( 0, 0, 75 ), 16, 16, Color( 225, 225, 225, 255 ) ) -- place Holder
+end
+
 timer.Create( "CFC_AttentionMonitor_tabNetTimmer", 0.5, 0, function()
 	local hasFocus = system.HasFocus()
 
@@ -18,12 +28,6 @@ end )
 
 hook.Add( "PostDrawTranslucentRenderables", "afkRenderElements", function()
 	for ply in pairs( tabbedOutList ) do -- draws the icon for each tabbed out player
-		if not ply:IsValid() then return end
-		if ply == LocalPlayer() then return end
-
-		local icon = Material( "icon16/monitor.png", "$translucent" )
-
-		render.SetMaterial( icon ) -- Place Holder
-		render.DrawSprite( ply:GetPos() + Vector( 0, 0, 75 ), 16, 16, Color( 225, 225, 225, 255 ) ) -- place Holder
+		renderables( ply )
 	end
 end )
