@@ -8,7 +8,7 @@ hook.Add( "PlayerDisconnected", "CFC_AttentionMonitor_playerleave", function(ply
 	tabbedOutPlys[ ply ] = nil
 end)
 
-function gameHasFocusCallback( _, pl )
+local function gameHasFocusCallback( _, pl )
 	local hasFocus = net.ReadBool()
 	if not hasFocus and not tabbedOutPlys[ pl ] then -- Checks to see if it needs to add the player
 		tabbedOutPlys[ pl ] = true
