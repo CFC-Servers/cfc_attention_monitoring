@@ -10,18 +10,18 @@ local function renderables( ply )
     render.DrawSprite( ply:GetPos() + Vector( 0, 0, 75 ), 16, 16, Color( 225, 225, 225, 255 ) ) -- place Holder
 end
 
-timer.Create( "CFC_AttentionMonitor_tabNetTimmer", 0.5, 0, function()
+timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.5, 0, function()
     local hasFocus = system.HasFocus()
 
     if isTabbedOut == hasFocus then return end
 
-    net.Start( "CFC_AttentionMonitor_gameHasFocus" )
+    net.Start( "CFC_AttentionMonitor_GameHasFocus" )
         net.WriteBool( hasFocus )
     net.SendToServer()
     isTabbedOut = hasFocus
 end )
 
-net.Receive( "CFC_AttentionMonitor_sendData", function() -- receives the players that tabbed out
+net.Receive( "CFC_AttentionMonitor_SendData", function() -- receives the players that tabbed out
     tabbedOutList = net.ReadTable()
 end )
 
