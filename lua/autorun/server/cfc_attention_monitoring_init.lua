@@ -4,7 +4,7 @@ local hasDataChanged = false
 util.AddNetworkString( "CFC_AttentionMonitor_GameHasFocus" )
 util.AddNetworkString( "CFC_AttentionMonitor_SendData" )
 
-hook.Add( "PlayerDisconnected", "CFC_AttentionMonitor_PlayerLeave", function(ply)
+hook.Add( "PlayerDisconnected", "CFC_AttentionMonitor_CleanypPlayerData", function(ply)
     if not tabbedOutPlys[ply] then return end
     hasDataChanged = true
     tabbedOutPlys[ply] = nil
