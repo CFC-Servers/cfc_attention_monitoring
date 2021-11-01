@@ -16,8 +16,6 @@ local function gameHasFocusCallback( _, ply )
     tabbedOutPlys[ ply ] = not hasFocus or nil
 end
 
-
-
 timer.Create( "CFC_AttentionMonitor_DataTimmer", 1.2, 0, function()
     if not hasDataChanged then return end
     net.Start( "CFC_AttentionMonitor_SendData" ) -- Sends the list of players to the client
