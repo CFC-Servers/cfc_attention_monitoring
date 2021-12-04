@@ -16,6 +16,7 @@ local function renderables( ply )
 
         render.SetMaterial( icon )
         render.DrawSprite( pos, 16, 16, Color( 225, 225, 225, 255 ) )
+
 end
 
 timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.5, 0, function()
