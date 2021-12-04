@@ -7,8 +7,8 @@ util.AddNetworkString( "CFC_AttentionMonitor_SendData" )
 hook.Add( "PlayerDisconnected", "CFC_AttentionMonitor_CleanupPlayerData", function(ply)
     if not tabbedOutPlys[ply] then return end
     hasDataChanged = true
-    tabbedOutPlys[ply] = nil
-end)
+    tabbedOutPlys[ ply ] = nil
+end )
 
 local function gameHasFocusCallback( _, ply )
     local hasFocus = net.ReadBool()
@@ -16,12 +16,12 @@ local function gameHasFocusCallback( _, ply )
     tabbedOutPlys[ ply ] = not hasFocus or nil
 end
 
-timer.Create( "CFC_AttentionMonitor_DataTimmer", 1.2, 0, function()
+timer.Create( "CFC_AttentionMonitor_DataTimer", 1.2, 0, function()
     if not hasDataChanged then return end
     net.Start( "CFC_AttentionMonitor_SendData" ) -- Sends the list of players to the client
         net.WriteTable( tabbedOutPlys )
     net.Broadcast()
     hasDataChanged = false
-end)
+end )
 
 net.Receive( "CFC_AttentionMonitor_GameHasFocus", gameHasFocusCallback )  -- Gets the player that tabbed out
