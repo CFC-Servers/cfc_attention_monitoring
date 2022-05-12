@@ -1,4 +1,4 @@
-util.AddNetworkString( "CFC_AttentionMonitor_FocusChange" )
+util.AddNetworkString( "CFC_AttentionMonitor_GameHasFocus" )
 
 CFCAttentionMonitor = { pendingFocusChanges = {} }
 local pendingFocusChanges = CFCAttentionMonitor.pendingFocusChanges
