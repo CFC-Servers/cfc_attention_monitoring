@@ -3,12 +3,12 @@ util.AddNetworkString( "CFC_AttentionMonitor_GameHasFocus" )
 CFCAttentionMonitor = { pendingFocusChanges = {} }
 local pendingFocusChanges = CFCAttentionMonitor.pendingFocusChanges
 
-hook.Add( "PlayerDisconnected", "CFC_AttentionMonitor_CleanupPlayerData", function(ply)
+hook.Add( "PlayerDisconnected", "CFC_AttentionMonitor_CleanupPlayerData", function( ply )
     pendingFocusChanges[ply] = nil
 end )
 
 local function focusCallback( _, ply )
-    pendingFocusChanges[ply] = net.ReadBool()
+    pendingFocusChanges[ply] = not net.ReadBool()
 end
 
 timer.Create( "CFC_AttentionMonitor_DataTimer", 1, 0, function()

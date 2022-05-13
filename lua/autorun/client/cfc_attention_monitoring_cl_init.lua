@@ -37,10 +37,8 @@ hook.Add( "PostPlayerDraw", "CFC_AttentionMonitor_AfkRenderElements", function()
     local me = LocalPlayer()
 
     for _, ply in ipairs( player_GetAll() ) do
-        if ply ~= me then
-            if ply:GetNW2Bool( "IsTabbedOut" ) then
-                pcall( renderTabbedOut, ply )
-            end
+        if ply ~= me and ply:GetNW2Bool( "IsTabbedOut" ) then
+            pcall( renderTabbedOut, ply )
         end
     end
 end )
