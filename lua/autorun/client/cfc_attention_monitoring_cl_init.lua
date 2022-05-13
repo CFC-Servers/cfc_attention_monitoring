@@ -1,5 +1,4 @@
-local ipairs = ipairs
-local player_GetAll = player.GetAll
+local pcall = pcall
 
 local isTabbedOut = false
 local icon = Material( "icon16/monitor.png", "3D" )
