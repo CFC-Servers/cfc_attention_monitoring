@@ -34,7 +34,7 @@ timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.5, 0, function()
 end )
 
 hook.Add( "PostPlayerDraw", "CFC_AttentionMonitor_AfkRenderElements", function( ply )
-    if ply ~= me and ply:GetNW2Bool( "IsTabbedOut" ) then
+    if ply:GetNW2Bool( "IsTabbedOut" ) then
         pcall( renderTabbedOut, ply )
     end
 end )
