@@ -1,7 +1,7 @@
 local pcall = pcall
 
 local isTabbedOut = false
-local icon = Material( "icon16/monitor.png", "3D" )
+local icon = Material( "icon16/monitor.png", "3D mips" )
 
 local spriteColor = Color( 225, 225, 225, 225 )
 local spriteBoneOffset = Vector( 0, 0, 12 )
