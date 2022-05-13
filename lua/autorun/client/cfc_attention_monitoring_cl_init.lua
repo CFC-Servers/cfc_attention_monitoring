@@ -1,4 +1,5 @@
 local pcall = pcall
+local HasFocus = system.HasFocus
 
 local isTabbedOut = false
 local icon = Material( "icon16/monitor.png", "3D mips" )
@@ -22,8 +23,8 @@ local function renderTabbedOut( ply )
     render.DrawSprite( pos, 16, 16, spriteColor )
 end
 
-timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.5, 0, function()
-    local hasFocus = system.HasFocus()
+timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.25, 0, function()
+    local hasFocus = HasFocus()
     if isTabbedOut == hasFocus then return end
 
     net.Start( "CFC_AttentionMonitor_GameHasFocus" )
