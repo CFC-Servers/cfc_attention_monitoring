@@ -8,9 +8,8 @@ local spriteColor = Color( 225, 225, 225, 225 )
 local spriteBoneOffset = Vector( 0, 0, 12 )
 local spriteOffset = Vector( 0, 0, 73 )
 
-local eyes = 1
-
 local function renderTabbedOut( ply )
+    local eyes = ply:LookupAttachment( "eyes" )
     local attachment = ply:GetAttachment( eyes )
 
     if attachment then -- checks if it got the bone
