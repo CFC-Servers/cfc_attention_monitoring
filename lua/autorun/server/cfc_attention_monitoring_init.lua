@@ -11,7 +11,7 @@ local function focusCallback( _, ply )
     pendingFocusChanges[ply] = not net.ReadBool()
 end
 
-timer.Create( "CFC_AttentionMonitor_DataTimer", 1, 0, function()
+timer.Create( "CFC_AttentionMonitor_DataTimer", 0.25, 0, function()
     for ply, isTabbedOut in pairs( pendingFocusChanges ) do
         ply:SetNW2Bool( "IsTabbedOut", isTabbedOut )
         pendingFocusChanges[ply] = nil
