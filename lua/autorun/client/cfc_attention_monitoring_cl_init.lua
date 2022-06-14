@@ -2,12 +2,17 @@ local HasFocus = system.HasFocus
 local IsValid = IsValid
 local cam_Start3D2D = cam.Start3D2D
 local cam_End3D2D = cam.End3D2D
-
+local math_Round = math.Round
+local CurTime = CurTime
+local draw_SimpleTextOutlined = draw.SimpleTextOutlined
 local render_PushFilterMag = render.PushFilterMag
 local surface_SetMaterial = surface.SetMaterial
 local surface_SetDrawColor = surface.SetDrawColor
 local surface_DrawTexturedRect = surface.DrawTexturedRect
 local render_PopFilterMag = render.PopFilterMag
+local TEXT_ALIGN_CENTER = TEXT_ALIGN_CENTER
+local TEXT_ALIGN_TOP = TEXT_ALIGN_TOP
+local TEXFILTER_POINT = TEXFILTER.POINT
 
 local isTabbedOut = false
 local icon = Material( "icon16/monitor.png", "3D mips" )
@@ -15,8 +20,31 @@ local icon = Material( "icon16/monitor.png", "3D mips" )
 local spriteBoneOffset = Vector( 0, 0, 15 )
 local spriteOffset = Vector( 0, 0, 75 )
 local fadeColor = Color( 255, 255, 255, 255 )
-local fadeStart = 1000 ^ 2
+local fadeStart = 1250 ^ 2
 local fadeEnd = 1750 ^ 2
+
+local timeFont = "CFC_AM_FONT"
+
+surface.CreateFont( timeFont, {
+        font = "Arial",
+        size = 65,
+        antialiasing = true,
+        weight = 1
+    }
+)
+
+local function formatAfkTime( ply )
+    local time = math_Round( CurTime() - ply:GetNW2Int( "CFC_AM_TabbedOutTime" ) )
+    if time < 60 then
+        return time .. " s"
+    end
+
+    if time < 3600 then
+        return math_Round( time / 60 ) .. " m"
+    end
+
+    return math_Round( time / 3600 ) .. " h"
+end
 
 local function drawIcon( ply )
     if not IsValid( ply ) then return end
@@ -48,18 +76,21 @@ local function drawIcon( ply )
         fadeColor.a = 255
     end
 
-    cam_Start3D2D( pos, angle, 1 )
-        render_PushFilterMag( TEXFILTER.POINT )
+    cam_Start3D2D( pos, angle, 0.05 )
+        render_PushFilterMag( TEXFILTER_POINT )
         surface_SetMaterial( icon )
         surface_SetDrawColor( fadeColor )
-        surface_DrawTexturedRect( -7, -7, 14, 14 )
+        surface_DrawTexturedRect( -110, -110, 220, 220 )
         render_PopFilterMag()
+
+        draw_SimpleTextOutlined( formatAfkTime( ply ), "CFC_AM_FONT", 0, 120, fadeColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1, fadeColor )
+
     cam_End3D2D()
 end
 
 local function drawIcons()
     for _, ply in ipairs( player.GetAll() ) do
-        if ply:GetNW2Bool( "IsTabbedOut" ) then
+        if ply:GetNW2Bool( "CFC_AM_IsTabbedOut" ) then
             drawIcon( ply )
         end
     end
