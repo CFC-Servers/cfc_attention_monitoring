@@ -59,7 +59,7 @@ end
 
 local function drawIcons()
     for _, ply in ipairs( player.GetAll() ) do
-        if true or ply:GetNW2Bool( "IsTabbedOut" ) then
+        if ply:GetNW2Bool( "IsTabbedOut" ) then
             drawIcon( ply )
         end
     end
