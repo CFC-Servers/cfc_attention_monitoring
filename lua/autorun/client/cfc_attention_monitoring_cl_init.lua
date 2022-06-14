@@ -1,14 +1,30 @@
-local pcall = pcall
 local HasFocus = system.HasFocus
+local IsValid = IsValid
+local cam_Start3D2D = cam.Start3D2D
+local cam_End3D2D = cam.End3D2D
+
+local render_PushFilterMag = render.PushFilterMag
+local surface_SetMaterial = surface.SetMaterial
+local surface_SetDrawColor = surface.SetDrawColor
+local surface_DrawTexturedRect = surface.DrawTexturedRect
+local render_PopFilterMag = render.PopFilterMag
 
 local isTabbedOut = false
 local icon = Material( "icon16/monitor.png", "3D mips" )
 
-local spriteColor = Color( 225, 225, 225, 225 )
-local spriteBoneOffset = Vector( 0, 0, 12 )
-local spriteOffset = Vector( 0, 0, 73 )
+local spriteBoneOffset = Vector( 0, 0, 15 )
+local spriteOffset = Vector( 0, 0, 75 )
+local fadeColor = Color( 255, 255, 255, 255 )
+local fadeStart = 1000 ^ 2
+local fadeEnd = 1750 ^ 2
 
-local function renderTabbedOut( ply )
+local function drawIcon( ply )
+    if not IsValid( ply ) then return end
+    if ply == LocalPlayer() then return end
+    if not ply:Alive() then return end
+
+    -- Position
+    local pos
     local eyes = ply:LookupAttachment( "eyes" )
     local attachment = ply:GetAttachment( eyes )
 
@@ -18,9 +34,43 @@ local function renderTabbedOut( ply )
         pos = ply:GetPos() + spriteOffset
     end
 
-    render.SetMaterial( icon )
-    render.DrawSprite( pos, 16, 16, spriteColor )
+    -- Angle
+    local angle = EyeAngles()
+    angle:RotateAroundAxis( angle:Right(), 90 )
+    angle:RotateAroundAxis( -angle:Up(), 90 )
+
+    -- Fade
+    local dist = pos:DistToSqr( EyePos() )
+    if dist > fadeEnd then return end
+    if dist > fadeStart then
+        fadeColor.a = 255 * ( 1 - ( dist / fadeEnd ) )
+    else
+        fadeColor.a = 255
+    end
+
+    -- local dist = render_pos:Distance( EyePos() )
+    -- local icon_view_ratio = icon_real_size_scaled / dist
+    -- local icon_view_ratio_clamped = math.Clamp(icon_view_ratio, fading_ratio_min, fading_ratio_max)
+    -- local dist_alpha = math.Remap(icon_view_ratio_clamped, fading_ratio_min, fading_ratio_max, 0, icon_max_alpha)
+
+    cam_Start3D2D( pos, angle, 1 )
+        render_PushFilterMag( TEXFILTER.POINT )
+        surface_SetMaterial( icon )
+        surface_SetDrawColor( fadeColor )
+        surface_DrawTexturedRect( -7, -7, 14, 14 )
+        render_PopFilterMag()
+    cam_End3D2D()
 end
+
+local function drawIcons()
+    for _, ply in ipairs( player.GetAll() ) do
+        if ply:GetNW2Bool( "IsTabbedOut" ) then
+            drawIcon( ply )
+        end
+    end
+end
+
+hook.Add( "PostDrawTranslucentRenderables", "CFC_AttentionMonitor_AfkRenderElements", drawIcons )
 
 timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.25, 0, function()
     local hasFocus = HasFocus()
@@ -31,10 +81,4 @@ timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.25, 0, function()
     net.SendToServer()
 
     isTabbedOut = hasFocus
-end )
-
-hook.Add( "PostPlayerDraw", "CFC_AttentionMonitor_AfkRenderElements", function( ply )
-    if ply:GetNW2Bool( "IsTabbedOut" ) then
-        pcall( renderTabbedOut, ply )
-    end
 end )
