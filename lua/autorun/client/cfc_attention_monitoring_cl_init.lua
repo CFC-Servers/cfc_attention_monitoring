@@ -48,11 +48,6 @@ local function drawIcon( ply )
         fadeColor.a = 255
     end
 
-    -- local dist = render_pos:Distance( EyePos() )
-    -- local icon_view_ratio = icon_real_size_scaled / dist
-    -- local icon_view_ratio_clamped = math.Clamp(icon_view_ratio, fading_ratio_min, fading_ratio_max)
-    -- local dist_alpha = math.Remap(icon_view_ratio_clamped, fading_ratio_min, fading_ratio_max, 0, icon_max_alpha)
-
     cam_Start3D2D( pos, angle, 1 )
         render_PushFilterMag( TEXFILTER.POINT )
         surface_SetMaterial( icon )
@@ -64,7 +59,7 @@ end
 
 local function drawIcons()
     for _, ply in ipairs( player.GetAll() ) do
-        if ply:GetNW2Bool( "IsTabbedOut" ) then
+        if true or ply:GetNW2Bool( "IsTabbedOut" ) then
             drawIcon( ply )
         end
     end
