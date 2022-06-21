@@ -33,8 +33,8 @@ surface.CreateFont( timeFont, {
     }
 )
 
-local function formatAfkTime( ply, time )
-    local time = math_Round( time )
+local function formatAfkTime( rawTime )
+    local time = math_Round( rawTime )
     if time < 60 then
         return time .. " s"
     end
@@ -85,7 +85,7 @@ local function drawIcon( ply )
 
         local afktime = CurTime() - ply:GetNWInt( "CFC_AM_TabbedOutTime" )
         if afktime > 60 then
-            draw_SimpleTextOutlined( formatAfkTime( ply, afktime ), "CFC_AM_FONT", 0, 120, fadeColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1, fadeColor )
+            draw_SimpleTextOutlined( formatAfkTime( afktime ), "CFC_AM_FONT", 0, 120, fadeColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1, fadeColor )
         end
 
     cam_End3D2D()
