@@ -2,7 +2,7 @@ local HasFocus = system.HasFocus
 local IsValid = IsValid
 local cam_Start3D2D = cam.Start3D2D
 local cam_End3D2D = cam.End3D2D
-local math_Round = math.Round
+local math_floor = math.floor
 local CurTime = CurTime
 local draw_SimpleTextOutlined = draw.SimpleTextOutlined
 local render_PushFilterMag = render.PushFilterMag
@@ -34,16 +34,21 @@ surface.CreateFont( timeFont, {
 )
 
 local function formatAfkTime( rawTime )
-    local time = math_Round( rawTime )
-    if time < 60 then
-        return time .. " s"
+    local timeStr = ""
+    local time = math_floor( rawTime )
+    local hours = math_floor( ( time % 86400 ) / 3600 )
+    local minutes = math_floor( ( time % 3600 ) / 60 )
+    --local seconds = math_floor( time % 60 )
+
+    if hours ~= 0 then
+        timeStr = timeStr .. hours .. "h "
     end
 
-    if time < 3600 then
-        return math_Round( time / 60 ) .. " m"
+    if minutes ~= 0 then
+        timeStr = timeStr .. minutes .. "m"
     end
 
-    return math_Round( time / 3600 ) .. " h"
+    return timeStr
 end
 
 local function drawIcon( ply )
