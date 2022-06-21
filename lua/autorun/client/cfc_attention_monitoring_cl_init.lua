@@ -33,8 +33,8 @@ surface.CreateFont( timeFont, {
     }
 )
 
-local function formatAfkTime( ply )
-    local time = math_Round( CurTime() - ply:GetNW2Int( "CFC_AM_TabbedOutTime" ) )
+local function formatAfkTime( ply, time )
+    local time = math_Round( time )
     if time < 60 then
         return time .. " s"
     end
@@ -83,14 +83,17 @@ local function drawIcon( ply )
         surface_DrawTexturedRect( -110, -110, 220, 220 )
         render_PopFilterMag()
 
-        draw_SimpleTextOutlined( formatAfkTime( ply ), "CFC_AM_FONT", 0, 120, fadeColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1, fadeColor )
+        local afktime = CurTime() - ply:GetNWInt( "CFC_AM_TabbedOutTime" )
+        if afktime > 60 then
+            draw_SimpleTextOutlined( formatAfkTime( ply, afktime ), "CFC_AM_FONT", 0, 120, fadeColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1, fadeColor )
+        end
 
     cam_End3D2D()
 end
 
 local function drawIcons()
     for _, ply in ipairs( player.GetAll() ) do
-        if ply:GetNW2Bool( "CFC_AM_IsTabbedOut" ) then
+        if ply:GetNWBool( "CFC_AM_IsTabbedOut" ) then
             drawIcon( ply )
         end
     end
