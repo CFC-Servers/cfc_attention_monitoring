@@ -17,7 +17,7 @@ local TEXFILTER_POINT = TEXFILTER.POINT
 local isTabbedOut = false
 local icon = Material( "icon16/monitor.png", "3D mips" )
 
-local spriteBoneOffset = Vector( 0, 0, 15 )
+local spriteBoneOffset = Vector( 0, 0, 30 )
 local spriteOffset = Vector( 0, 0, 75 )
 local fadeColor = Color( 255, 255, 255, 255 )
 local fadeStart = 1250 ^ 2
