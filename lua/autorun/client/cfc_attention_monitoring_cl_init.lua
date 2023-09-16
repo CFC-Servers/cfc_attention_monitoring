@@ -24,6 +24,7 @@ local fadeStart = 1250 ^ 2
 local fadeEnd = 1750 ^ 2
 
 local timeFont = "CFC_AM_FONT"
+local RENDERMODE_TRANSALPHA = RENDERMODE_TRANSALPHA
 
 surface.CreateFont( timeFont, {
         font = "Arial",
@@ -52,9 +53,11 @@ local function formatAfkTime( rawTime )
 end
 
 local function drawIcon( ply )
-    if not IsValid( ply ) then return end
-    if ply == LocalPlayer() then return end
     if not ply:Alive() then return end
+    if ply:IsDormant() then return end
+    if ply:GetRenderMode() == RENDERMODE_TRANSALPHA then return end
+    if not ply:GetNWBool( "CFC_AM_IsTabbedOut" ) then return end
+    if ply == LocalPlayer() then return end
 
     -- Position
     local pos
@@ -98,9 +101,7 @@ end
 
 local function drawIcons()
     for _, ply in ipairs( player.GetAll() ) do
-        if ply:GetNWBool( "CFC_AM_IsTabbedOut" ) then
-            drawIcon( ply )
-        end
+        drawIcon( ply )
     end
 end
 
