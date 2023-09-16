@@ -1,5 +1,4 @@
 local HasFocus = system.HasFocus
-local IsValid = IsValid
 local cam_Start3D2D = cam.Start3D2D
 local cam_End3D2D = cam.End3D2D
 local math_floor = math.floor
