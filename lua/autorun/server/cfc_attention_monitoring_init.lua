@@ -13,8 +13,8 @@ end
 
 timer.Create( "CFC_AttentionMonitor_DataTimer", 0.25, 0, function()
     for ply, isTabbedOut in pairs( pendingFocusChanges ) do
-        ply:SetNWBool( "CFC_AM_IsTabbedOut", isTabbedOut )
-        ply:SetNWBool( "CFC_AM_TabbedOutTime", CurTime() )
+        ply:SetNW2Bool( "CFC_AM_IsTabbedOut", isTabbedOut )
+        ply:SetNW2Bool( "CFC_AM_TabbedOutTime", CurTime() )
         pendingFocusChanges[ply] = nil
     end
 end )
