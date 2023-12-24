@@ -55,7 +55,7 @@ local function drawIcon( ply )
     if not ply:Alive() then return end
     if ply:IsDormant() then return end
     if ply:GetRenderMode() == RENDERMODE_TRANSALPHA then return end
-    if not ply:GetNWBool( "CFC_AM_IsTabbedOut" ) then return end
+    if not ply:GetNW2Bool( "CFC_AM_IsTabbedOut" ) then return end
     if ply == LocalPlayer() then return end
 
     -- Position
@@ -90,7 +90,7 @@ local function drawIcon( ply )
         surface_DrawTexturedRect( -110, -110, 220, 220 )
         render_PopFilterMag()
 
-        local afktime = CurTime() - ply:GetNWInt( "CFC_AM_TabbedOutTime" )
+        local afktime = CurTime() - ply:GetNW2Int( "CFC_AM_TabbedOutTime" )
         if afktime > 60 then
             draw_SimpleTextOutlined( formatAfkTime( afktime ), "CFC_AM_FONT", 0, 120, fadeColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1, fadeColor )
         end
