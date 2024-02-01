@@ -51,11 +51,19 @@ local function formatAfkTime( rawTime )
     return timeStr
 end
 
+local plyMeta = FindMetaTable( "Player" )
+local isAlive = plyMeta.Alive
+
+local entMeta = FindMetaTable( "Entity" )
+local isDormant = entMeta.IsDormant
+local getRenderMode = entMeta.GetRenderMode
+local getNW2Bool = entMeta.GetNW2Bool
+
 local function drawIcon( ply )
-    if not ply:Alive() then return end
-    if ply:IsDormant() then return end
-    if ply:GetRenderMode() == RENDERMODE_TRANSALPHA then return end
-    if not ply:GetNW2Bool( "CFC_AM_IsTabbedOut" ) then return end
+    if not isAlive( ply ) then return end
+    if isDormant( ply ) then return end
+    if getRenderMode( ply ) == RENDERMODE_TRANSALPHA then return end
+    if not getNW2Bool( ply, "CFC_AM_IsTabbedOut" ) then return end
     if ply == LocalPlayer() then return end
 
     -- Position
