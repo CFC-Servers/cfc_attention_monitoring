@@ -13,6 +13,13 @@ local TEXT_ALIGN_CENTER = TEXT_ALIGN_CENTER
 local TEXT_ALIGN_TOP = TEXT_ALIGN_TOP
 local TEXFILTER_POINT = TEXFILTER.POINT
 
+local plyMeta = FindMetaTable( "Player" )
+local isAlive = plyMeta.Alive
+
+local entMeta = FindMetaTable( "Entity" )
+local isDormant = entMeta.IsDormant
+local getRenderMode = entMeta.GetRenderMode
+
 local isTabbedOut = false
 local icon = Material( "icon16/monitor.png", "3D mips" )
 
@@ -24,6 +31,8 @@ local fadeEnd = 1750 ^ 2
 
 local timeFont = "CFC_AM_FONT"
 local RENDERMODE_TRANSALPHA = RENDERMODE_TRANSALPHA
+
+local trackedPlayers = {}
 
 surface.CreateFont( timeFont, {
         font = "Arial",
@@ -51,19 +60,10 @@ local function formatAfkTime( rawTime )
     return timeStr
 end
 
-local plyMeta = FindMetaTable( "Player" )
-local isAlive = plyMeta.Alive
-
-local entMeta = FindMetaTable( "Entity" )
-local isDormant = entMeta.IsDormant
-local getRenderMode = entMeta.GetRenderMode
-local getNW2Bool = entMeta.GetNW2Bool
-
 local function drawIcon( ply )
     if not isAlive( ply ) then return end
     if isDormant( ply ) then return end
     if getRenderMode( ply ) == RENDERMODE_TRANSALPHA then return end
-    if not getNW2Bool( ply, "CFC_AM_IsTabbedOut" ) then return end
     if ply == LocalPlayer() then return end
 
     -- Position
@@ -107,12 +107,26 @@ local function drawIcon( ply )
 end
 
 local function drawIcons()
-    for _, ply in ipairs( player.GetAll() ) do
+    for _, ply in ipairs( trackedPlayers ) do
         drawIcon( ply )
     end
 end
 
 hook.Add( "PostDrawTranslucentRenderables", "CFC_AttentionMonitor_AfkRenderElements", drawIcons )
+
+hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, name, _, newval )
+    if name ~= "CFC_AM_IsTabbedOut" then return end
+    if newval then
+        table.insert( trackedPlayers, ent )
+    else
+        for i, ply in ipairs( trackedPlayers ) do
+            if ply == ent then
+                table.remove( trackedPlayers, i )
+                break
+            end
+        end
+    end
+end )
 
 timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.25, 0, function()
     local hasFocus = HasFocus()
