@@ -34,15 +34,6 @@ local RENDERMODE_TRANSALPHA = RENDERMODE_TRANSALPHA
 
 local trackedPlayers = {}
 
-local function removeTrackedPlayer( ply )
-    for i, trackedPly in ipairs( trackedPlayers ) do
-        if trackedPly == ply then
-            table.remove( trackedPlayers, i )
-            break
-        end
-    end
-end
-
 surface.CreateFont( timeFont, {
         font = "Arial",
         size = 65,
@@ -70,7 +61,10 @@ local function formatAfkTime( rawTime )
 end
 
 local function drawIcon( ply )
-    if not IsValid( ply ) then removeTrackedPlayer( ply ) return end
+    if not IsValid( ply ) then
+        table.RemoveByValue( trackedPlayers, ply )
+        return
+    end
     if not isAlive( ply ) then return end
     if isDormant( ply ) then return end
     if getRenderMode( ply ) == RENDERMODE_TRANSALPHA then return end
@@ -129,7 +123,7 @@ hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, na
     if newval then
         table.insert( trackedPlayers, ent )
     else
-        removeTrackedPlayer( ent )
+        table.RemoveByValue( trackedPlayers, ent )
     end
 end )
 
