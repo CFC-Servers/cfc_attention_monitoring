@@ -68,16 +68,14 @@ local function formatAfkTime( rawTime )
 end
 
 local function drawIcon( ply )
-    localPlayer = localPlayer or LocalPlayer()
-
     if not ply or ply == NULL then
         table.RemoveByValue( trackedPlayers, ply )
         return
     end
+    if ply == localPlayer then return end
     if not isAlive( ply ) then return end
     if isDormant( ply ) then return end
     if getRenderMode( ply ) == RENDERMODE_TRANSALPHA then return end
-    if ply == localPlayer then return end
 
     -- Position
     local pos
@@ -119,6 +117,8 @@ local function drawIcon( ply )
 end
 
 local function drawIcons()
+    localPlayer = localPlayer or LocalPlayer()
+
     for _, ply in ipairs( trackedPlayers ) do
         drawIcon( ply )
     end
