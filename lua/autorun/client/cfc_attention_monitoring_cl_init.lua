@@ -1,4 +1,6 @@
 local HasFocus = system.HasFocus
+local eyePos = EyePos()
+local eyeAngles = EyeAngles
 local cam_Start3D2D = cam.Start3D2D
 local cam_End3D2D = cam.End3D2D
 local math_floor = math.floor
@@ -19,6 +21,9 @@ local isAlive = plyMeta.Alive
 local entMeta = FindMetaTable( "Entity" )
 local isDormant = entMeta.IsDormant
 local getRenderMode = entMeta.GetRenderMode
+local lookupAttachment = entMeta.LookupAttachment
+local getAttachment = entMeta.GetAttachment
+local getPos = entMeta.GetPos
 
 local isTabbedOut = false
 local icon = Material( "icon16/monitor.png", "3D mips" )
@@ -31,6 +36,8 @@ local fadeEnd = 1750 ^ 2
 
 local timeFont = "CFC_AM_FONT"
 local RENDERMODE_TRANSALPHA = RENDERMODE_TRANSALPHA
+
+local localPlayer
 
 local trackedPlayers = {}
 
@@ -47,7 +54,7 @@ local function formatAfkTime( rawTime )
     local time = math_floor( rawTime )
     local hours = math_floor( ( time % 86400 ) / 3600 )
     local minutes = math_floor( ( time % 3600 ) / 60 )
-    --local seconds = math_floor( time % 60 )
+    -- local seconds = math_floor( time % 60 )
 
     if hours ~= 0 then
         timeStr = timeStr .. hours .. "h "
@@ -61,33 +68,35 @@ local function formatAfkTime( rawTime )
 end
 
 local function drawIcon( ply )
-    if not IsValid( ply ) then
+    localPlayer = localPlayer or LocalPlayer()
+
+    if not ply or ply == NULL then
         table.RemoveByValue( trackedPlayers, ply )
         return
     end
     if not isAlive( ply ) then return end
     if isDormant( ply ) then return end
     if getRenderMode( ply ) == RENDERMODE_TRANSALPHA then return end
-    if ply == LocalPlayer() then return end
+    if ply == localPlayer then return end
 
     -- Position
     local pos
-    local eyes = ply:LookupAttachment( "eyes" )
-    local attachment = ply:GetAttachment( eyes )
+    local eyes = lookupAttachment( ply, "eyes" )
+    local attachment = getAttachment( ply, eyes )
 
     if attachment then -- checks if it got the bone
         pos = attachment.Pos + spriteBoneOffset
     else
-        pos = ply:GetPos() + spriteOffset
+        pos = getPos( ply ) + spriteOffset
     end
 
     -- Angle
-    local angle = EyeAngles()
+    local angle = eyeAngles()
     angle:RotateAroundAxis( angle:Right(), 90 )
     angle:RotateAroundAxis( -angle:Up(), 90 )
 
     -- Fade
-    local dist = pos:DistToSqr( EyePos() )
+    local dist = pos:DistToSqr( eyePos() )
     if dist > fadeEnd then return end
     if dist > fadeStart then
         fadeColor.a = 255 * ( 1 - ( dist / fadeEnd ) )
@@ -106,7 +115,6 @@ local function drawIcon( ply )
         if afktime > 60 then
             draw_SimpleTextOutlined( formatAfkTime( afktime ), "CFC_AM_FONT", 0, 120, fadeColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1, fadeColor )
         end
-
     cam_End3D2D()
 end
 
@@ -118,9 +126,9 @@ end
 
 hook.Add( "PostDrawTranslucentRenderables", "CFC_AttentionMonitor_AfkRenderElements", drawIcons )
 
-hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, name, _, newval )
+hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, name, _, newVal )
     if name ~= "CFC_AM_IsTabbedOut" then return end
-    if newval then
+    if newVal then
         table.insert( trackedPlayers, ent )
     else
         table.RemoveByValue( trackedPlayers, ent )
