@@ -1,6 +1,6 @@
 local HasFocus = system.HasFocus
-local eyePos = EyePos
-local eyeAngles = EyeAngles
+local EyePos = EyePos
+local EyeAngles = EyeAngles
 local cam_Start3D2D = cam.Start3D2D
 local cam_End3D2D = cam.End3D2D
 local math_floor = math.floor
@@ -89,12 +89,12 @@ local function drawIcon( ply )
     end
 
     -- Angle
-    local angle = eyeAngles()
+    local angle = EyeAngles()
     angle:RotateAroundAxis( angle:Right(), 90 )
     angle:RotateAroundAxis( -angle:Up(), 90 )
 
     -- Fade
-    local dist = pos:DistToSqr( eyePos() )
+    local dist = pos:DistToSqr( EyePos() )
     if dist > fadeEnd then return end
     if dist > fadeStart then
         fadeColor.a = 255 * ( 1 - ( dist / fadeEnd ) )
