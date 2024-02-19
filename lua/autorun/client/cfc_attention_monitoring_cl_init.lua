@@ -1,4 +1,5 @@
 local HasFocus = system.HasFocus
+local NULL = NULL
 local EyePos = EyePos
 local EyeAngles = EyeAngles
 local cam_Start3D2D = cam.Start3D2D
