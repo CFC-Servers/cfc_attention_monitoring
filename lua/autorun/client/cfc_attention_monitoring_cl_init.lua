@@ -121,7 +121,9 @@ hook.Add( "PostDrawTranslucentRenderables", "CFC_AttentionMonitor_AfkRenderEleme
 hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, name, _, newval )
     if name ~= "CFC_AM_IsTabbedOut" then return end
     if newval then
-        table.insert( trackedPlayers, ent )
+        if not table.HasValue( trackedPlayers, ent ) then -- EntityNetworkedVarChanged can run twice for the same ent + value so we have to make sure we don't insert twice.
+            table.insert( trackedPlayers, ent )
+        end
     else
         table.RemoveByValue( trackedPlayers, ent )
     end
