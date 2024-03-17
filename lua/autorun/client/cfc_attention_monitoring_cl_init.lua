@@ -127,6 +127,13 @@ hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, na
     end
 end )
 
+gameevent.Listen( "OnRequestFullUpdate" )
+hook.Add( "OnRequestFullUpdate", "CFC_AttentionMonitor", function( data )
+    if data.userid ~= LocalPlayer():UserID() then return end
+
+    trackedPlayers = {}
+end )
+
 timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.25, 0, function()
     local hasFocus = HasFocus()
     if isTabbedOut == hasFocus then return end
