@@ -33,7 +33,6 @@ local timeFont = "CFC_AM_FONT"
 local RENDERMODE_TRANSALPHA = RENDERMODE_TRANSALPHA
 
 local trackedPlayers = {}
-g_trackedPlayers = trackedPlayers
 
 surface.CreateFont( timeFont, {
         font = "Arial",
