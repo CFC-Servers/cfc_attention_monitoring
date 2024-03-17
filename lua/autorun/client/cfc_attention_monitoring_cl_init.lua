@@ -131,7 +131,7 @@ gameevent.Listen( "OnRequestFullUpdate" )
 hook.Add( "OnRequestFullUpdate", "CFC_AttentionMonitor", function( data )
     if data.userid ~= LocalPlayer():UserID() then return end
 
-    table.Empty( trackedPlayers )
+    trackedPlayers = {}
 end )
 
 timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.25, 0, function()
