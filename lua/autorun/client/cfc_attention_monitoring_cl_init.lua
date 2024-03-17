@@ -33,6 +33,7 @@ local timeFont = "CFC_AM_FONT"
 local RENDERMODE_TRANSALPHA = RENDERMODE_TRANSALPHA
 
 local trackedPlayers = {}
+g_trackedPlayers = trackedPlayers
 
 surface.CreateFont( timeFont, {
         font = "Arial",
@@ -121,12 +122,17 @@ hook.Add( "PostDrawTranslucentRenderables", "CFC_AttentionMonitor_AfkRenderEleme
 hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, name, _, newval )
     if name ~= "CFC_AM_IsTabbedOut" then return end
     if newval then
-        if not table.HasValue( trackedPlayers, ent ) then -- EntityNetworkedVarChanged can run twice for the same ent + value so we have to make sure we don't insert twice.
-            table.insert( trackedPlayers, ent )
-        end
+       table.insert( trackedPlayers, ent )
     else
         table.RemoveByValue( trackedPlayers, ent )
     end
+end )
+
+gameevent.Listen( "OnRequestFullUpdate" )
+hook.Add( "OnRequestFullUpdate", "CFC_AttentionMonitor", function( data )
+    if data.userid ~= LocalPlayer():UserID() then return end
+
+    table.Empty( trackedPlayers )
 end )
 
 timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.25, 0, function()
