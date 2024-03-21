@@ -129,7 +129,7 @@ end )
 
 gameevent.Listen( "OnRequestFullUpdate" )
 hook.Add( "OnRequestFullUpdate", "CFC_AttentionMonitor", function( data )
-    if data.userid ~= LocalPlayer():UserID() then return end
+    if Player( data.userid ) ~= LocalPlayer() then return end
 
     trackedPlayers = {}
 end )
