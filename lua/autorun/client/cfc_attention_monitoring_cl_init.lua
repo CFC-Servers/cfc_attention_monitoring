@@ -120,7 +120,7 @@ hook.Add( "PostDrawTranslucentRenderables", "CFC_AttentionMonitor_AfkRenderEleme
 
 hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, name, _, newval )
     if name ~= "CFC_AM_IsTabbedOut" then return end
-    if newval then
+    if newval and not table.HasValue( trackedPlayers, ent ) then
         table.insert( trackedPlayers, ent )
     else
         table.RemoveByValue( trackedPlayers, ent )
