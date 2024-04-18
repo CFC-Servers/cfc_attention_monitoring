@@ -129,11 +129,18 @@ hook.Add( "PostDrawTranslucentRenderables", "CFC_AttentionMonitor_AfkRenderEleme
 
 hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, name, _, newVal )
     if name ~= "CFC_AM_IsTabbedOut" then return end
-    if newVal then
+    if newval and not table.HasValue( trackedPlayers, ent ) then
         table.insert( trackedPlayers, ent )
     else
         table.RemoveByValue( trackedPlayers, ent )
     end
+end )
+
+gameevent.Listen( "OnRequestFullUpdate" )
+hook.Add( "OnRequestFullUpdate", "CFC_AttentionMonitor", function( data )
+    if Player( data.userid ) ~= LocalPlayer() then return end
+
+    trackedPlayers = {}
 end )
 
 timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.25, 0, function()
