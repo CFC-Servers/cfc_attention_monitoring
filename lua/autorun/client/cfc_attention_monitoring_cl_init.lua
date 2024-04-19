@@ -55,7 +55,6 @@ local function formatAfkTime( rawTime )
     local time = math_floor( rawTime )
     local hours = math_floor( ( time % 86400 ) / 3600 )
     local minutes = math_floor( ( time % 3600 ) / 60 )
-    -- local seconds = math_floor( time % 60 )
 
     if hours ~= 0 then
         timeStr = timeStr .. hours .. "h "
