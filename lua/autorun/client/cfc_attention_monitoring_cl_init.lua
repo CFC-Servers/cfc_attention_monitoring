@@ -1,5 +1,4 @@
 local HasFocus = system.HasFocus
-local NULL = NULL
 local EyePos = EyePos
 local EyeAngles = EyeAngles
 local cam_Start3D2D = cam.Start3D2D
@@ -25,6 +24,7 @@ local getRenderMode = entMeta.GetRenderMode
 local lookupAttachment = entMeta.LookupAttachment
 local getAttachment = entMeta.GetAttachment
 local getPos = entMeta.GetPos
+local isValid = entMeta.IsValid
 
 local isTabbedOut = false
 local icon = Material( "icon16/monitor.png", "3D mips" )
@@ -68,7 +68,7 @@ local function formatAfkTime( rawTime )
 end
 
 local function drawIcon( ply )
-    if not ply or ply == NULL then
+    if not isValid(ply) then
         table.RemoveByValue( trackedPlayers, ply )
         return
     end
@@ -128,7 +128,7 @@ hook.Add( "PostDrawTranslucentRenderables", "CFC_AttentionMonitor_AfkRenderEleme
 
 hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, name, _, newVal )
     if name ~= "CFC_AM_IsTabbedOut" then return end
-    if newval and not table.HasValue( trackedPlayers, ent ) then
+    if newVal and not table.HasValue( trackedPlayers, ent ) then
         table.insert( trackedPlayers, ent )
     else
         table.RemoveByValue( trackedPlayers, ent )
@@ -137,7 +137,8 @@ end )
 
 gameevent.Listen( "OnRequestFullUpdate" )
 hook.Add( "OnRequestFullUpdate", "CFC_AttentionMonitor", function( data )
-    if Player( data.userid ) ~= LocalPlayer() then return end
+    localPlayer = localPlayer or LocalPlayer()
+    if Player( data.userid ) ~= localPlayer then return end
 
     trackedPlayers = {}
 end )
