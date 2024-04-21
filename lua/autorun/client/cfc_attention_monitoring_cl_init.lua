@@ -68,7 +68,7 @@ local function formatAfkTime( rawTime )
 end
 
 local function drawIcon( ply )
-    if not isValid(ply) then
+    if not isValid( ply ) then
         table.RemoveByValue( trackedPlayers, ply )
         return
     end
