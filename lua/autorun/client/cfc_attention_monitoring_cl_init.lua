@@ -1,4 +1,6 @@
 local HasFocus = system.HasFocus
+local EyePos = EyePos
+local EyeAngles = EyeAngles
 local cam_Start3D2D = cam.Start3D2D
 local cam_End3D2D = cam.End3D2D
 local math_floor = math.floor
@@ -19,6 +21,10 @@ local isAlive = plyMeta.Alive
 local entMeta = FindMetaTable( "Entity" )
 local isDormant = entMeta.IsDormant
 local getRenderMode = entMeta.GetRenderMode
+local lookupAttachment = entMeta.LookupAttachment
+local getAttachment = entMeta.GetAttachment
+local getPos = entMeta.GetPos
+local isValid = entMeta.IsValid
 
 local isTabbedOut = false
 local icon = Material( "icon16/monitor.png", "3D mips" )
@@ -31,6 +37,8 @@ local fadeEnd = 1750 ^ 2
 
 local timeFont = "CFC_AM_FONT"
 local RENDERMODE_TRANSALPHA = RENDERMODE_TRANSALPHA
+
+local localPlayer
 
 local trackedPlayers = {}
 
@@ -47,7 +55,6 @@ local function formatAfkTime( rawTime )
     local time = math_floor( rawTime )
     local hours = math_floor( ( time % 86400 ) / 3600 )
     local minutes = math_floor( ( time % 3600 ) / 60 )
-    --local seconds = math_floor( time % 60 )
 
     if hours ~= 0 then
         timeStr = timeStr .. hours .. "h "
@@ -61,24 +68,24 @@ local function formatAfkTime( rawTime )
 end
 
 local function drawIcon( ply )
-    if not IsValid( ply ) then
+    if not isValid( ply ) then
         table.RemoveByValue( trackedPlayers, ply )
         return
     end
+    if ply == localPlayer then return end
     if not isAlive( ply ) then return end
     if isDormant( ply ) then return end
     if getRenderMode( ply ) == RENDERMODE_TRANSALPHA then return end
-    if ply == LocalPlayer() then return end
 
     -- Position
     local pos
-    local eyes = ply:LookupAttachment( "eyes" )
-    local attachment = ply:GetAttachment( eyes )
+    local eyes = lookupAttachment( ply, "eyes" )
+    local attachment = getAttachment( ply, eyes )
 
     if attachment then -- checks if it got the bone
         pos = attachment.Pos + spriteBoneOffset
     else
-        pos = ply:GetPos() + spriteOffset
+        pos = getPos( ply ) + spriteOffset
     end
 
     -- Angle
@@ -106,11 +113,12 @@ local function drawIcon( ply )
         if afktime > 60 then
             draw_SimpleTextOutlined( formatAfkTime( afktime ), "CFC_AM_FONT", 0, 120, fadeColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1, fadeColor )
         end
-
     cam_End3D2D()
 end
 
 local function drawIcons()
+    localPlayer = localPlayer or LocalPlayer()
+
     for _, ply in ipairs( trackedPlayers ) do
         drawIcon( ply )
     end
@@ -118,9 +126,9 @@ end
 
 hook.Add( "PostDrawTranslucentRenderables", "CFC_AttentionMonitor_AfkRenderElements", drawIcons )
 
-hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, name, _, newval )
+hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, name, _, newVal )
     if name ~= "CFC_AM_IsTabbedOut" then return end
-    if newval and not table.HasValue( trackedPlayers, ent ) then
+    if newVal and not table.HasValue( trackedPlayers, ent ) then
         table.insert( trackedPlayers, ent )
     else
         table.RemoveByValue( trackedPlayers, ent )
@@ -129,7 +137,8 @@ end )
 
 gameevent.Listen( "OnRequestFullUpdate" )
 hook.Add( "OnRequestFullUpdate", "CFC_AttentionMonitor", function( data )
-    if Player( data.userid ) ~= LocalPlayer() then return end
+    localPlayer = localPlayer or LocalPlayer()
+    if Player( data.userid ) ~= localPlayer then return end
 
     trackedPlayers = {}
 end )
