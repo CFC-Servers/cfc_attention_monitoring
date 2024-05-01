@@ -38,8 +38,6 @@ local fadeEnd = 1750 ^ 2
 local timeFont = "CFC_AM_FONT"
 local RENDERMODE_TRANSALPHA = RENDERMODE_TRANSALPHA
 
-local localPlayer
-
 local trackedPlayers = {}
 
 surface.CreateFont( timeFont, {
@@ -72,7 +70,7 @@ local function drawIcon( ply )
         table.RemoveByValue( trackedPlayers, ply )
         return
     end
-    if ply == localPlayer then return end
+
     if not isAlive( ply ) then return end
     if isDormant( ply ) then return end
     if getRenderMode( ply ) == RENDERMODE_TRANSALPHA then return end
@@ -117,8 +115,6 @@ local function drawIcon( ply )
 end
 
 local function drawIcons()
-    localPlayer = localPlayer or LocalPlayer()
-
     for _, ply in ipairs( trackedPlayers ) do
         drawIcon( ply )
     end
@@ -128,6 +124,8 @@ hook.Add( "PostDrawTranslucentRenderables", "CFC_AttentionMonitor_AfkRenderEleme
 
 hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, name, _, newVal )
     if name ~= "CFC_AM_IsTabbedOut" then return end
+    if ent == LocalPlayer() then return end
+
     if newVal and not table.HasValue( trackedPlayers, ent ) then
         table.insert( trackedPlayers, ent )
     else
@@ -137,8 +135,7 @@ end )
 
 gameevent.Listen( "OnRequestFullUpdate" )
 hook.Add( "OnRequestFullUpdate", "CFC_AttentionMonitor", function( data )
-    localPlayer = localPlayer or LocalPlayer()
-    if Player( data.userid ) ~= localPlayer then return end
+    if Player( data.userid ) ~= LocalPlayer() then return end
 
     trackedPlayers = {}
 end )
