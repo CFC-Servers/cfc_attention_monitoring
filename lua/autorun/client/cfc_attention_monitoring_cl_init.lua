@@ -114,7 +114,9 @@ local function drawIcon( ply )
     cam_End3D2D()
 end
 
-local function drawIcons()
+local function drawIcons( _depth, skybox )
+    if skybox then return end
+
     for _, ply in ipairs( trackedPlayers ) do
         drawIcon( ply )
     end
