@@ -1,12 +1,9 @@
 # cfc_attention_monitoring
-This addon displays an icon above the head of players that are currently tabbed out of the game.
-
-# How it works
-It sends the player that tabbed out to the server to be put in a table of tabbed out players. Then after some delay it will send the table back to the client where it will render out the icons.
+A simple player status display, shows if the player is in the mainmenu, spawnmenu, tabbed out or chat using icons above their head. Optimised to respect PVS so it's compatible with larger servers.
+Time will be displayed under the icon if the player has been in a certain status for more than 60s.
 
 # Images
 
-![tabb1](https://user-images.githubusercontent.com/84646760/143833740-146caad9-e054-4966-9ebe-76139cb59f28.JPG)
-![tabb2](https://user-images.githubusercontent.com/84646760/143833745-16f00abc-c02a-43ce-a111-6997f123b85f.JPG)
-
-
+![image](https://github.com/user-attachments/assets/b474215b-fafb-4a75-ad42-312b55880a30)
+![image](https://github.com/user-attachments/assets/d6acb913-94fe-49ea-bdc1-4f1c8d57338b)
+![image](https://github.com/user-attachments/assets/151bdb70-439d-4fa6-b51a-4212a70b2c21)
