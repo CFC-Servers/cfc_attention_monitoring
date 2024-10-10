@@ -21,16 +21,15 @@ local isAlive = plyMeta.Alive
 local entMeta = FindMetaTable( "Entity" )
 local isDormant = entMeta.IsDormant
 local getRenderMode = entMeta.GetRenderMode
-local lookupAttachment = entMeta.LookupAttachment
-local getAttachment = entMeta.GetAttachment
-local getPos = entMeta.GetPos
+local lookupBone = entMeta.LookupBone
+local getBoneMatrix = entMeta.GetBoneMatrix
 local isValid = entMeta.IsValid
 
-local spriteBoneOffset = Vector( 0, 0, 13 )
-local spriteOffset = Vector( 0, 0, 75 )
+local spriteBoneOffset = Vector( 0, 0, 15 )
 local fadeColor = Color( 255, 255, 255, 255 )
 local fadeStart = 1250 ^ 2
 local fadeEnd = 1750 ^ 2
+local iconSize = 128
 
 local timeFont = "CFC_AM_FONT"
 local RENDERMODE_TRANSALPHA = RENDERMODE_TRANSALPHA
@@ -74,15 +73,10 @@ local function drawIcon( ply, iconType )
     if getRenderMode( ply ) == RENDERMODE_TRANSALPHA then return end
 
     -- Position
-    local pos
-    local eyes = lookupAttachment( ply, "eyes" )
-    local attachment = getAttachment( ply, eyes )
-
-    if attachment then -- checks if it got the bone
-        pos = attachment.Pos + spriteBoneOffset
-    else
-        pos = getPos( ply ) + spriteOffset
-    end
+    local headBone = lookupBone( ply, "ValveBiped.Bip01_Head1" ) or 0
+    local matrix = getBoneMatrix( ply, headBone )
+    local pos = matrix:GetTranslation()
+    pos = pos + spriteBoneOffset
 
     -- Angle
     local angle = EyeAngles()
@@ -104,7 +98,7 @@ local function drawIcon( ply, iconType )
         render_PushFilterMag( TEXFILTER_POINT )
         surface_SetMaterial( icon )
         surface_SetDrawColor( fadeColor )
-        surface_DrawTexturedRect( - 115 / 2, - 115 / 2, 115, 115 )
+        surface_DrawTexturedRect( -iconSize / 2, -iconSize / 2, iconSize, iconSize )
         render_PopFilterMag()
 
         local afktime = CurTime() - ply:GetNW2Int( "CFC_AM_Time" )
