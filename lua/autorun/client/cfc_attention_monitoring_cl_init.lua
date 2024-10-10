@@ -75,6 +75,8 @@ local function drawIcon( ply, iconType )
     -- Position
     local headBone = lookupBone( ply, "ValveBiped.Bip01_Head1" ) or 0
     local matrix = getBoneMatrix( ply, headBone )
+    if not matrix then return end
+
     local pos = matrix:GetTranslation()
     pos = pos + spriteBoneOffset
 

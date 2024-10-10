@@ -25,7 +25,34 @@ local function sync( ply )
     end
 end
 
+-- Leaky bucket rate limiting
+local buffer = 50 -- total in the bucket
+local refill = 8 -- per second
+local function rateLimit( ply )
+    if not ply.CFC_AM_RateLimitBucket then ply.CFC_AM_RateLimitBucket = buffer end
+
+    local curTime = CurTime()
+    if not ply.CFC_AM_RatelimitTime then ply.CFC_AM_RatelimitTime = curTime end
+
+    local dripSize = curTime - ply.CFC_AM_RatelimitTime
+    ply.CFC_AM_RatelimitTime = curTime
+
+    local drip = dripSize * refill
+    local newVal = ply.CFC_AM_RateLimitBucket + drip
+
+    ply.CFC_AM_RateLimitBucket = math.Clamp( newVal, 0, buffer )
+
+    if ply.CFC_AM_RateLimitBucket >= 1 then
+        ply.CFC_AM_RateLimitBucket = ply.CFC_AM_RateLimitBucket - 1
+        return true
+    else
+        return false
+    end
+end
+
 net.Receive( "CFC_AttentionMonitor", function( _, ply )
+    if not rateLimit( ply ) then return end
+
     local eventType = net.ReadUInt( 3 )
     if not CFCAttentionMonitor.EnumsReverse[eventType] then return end
 
