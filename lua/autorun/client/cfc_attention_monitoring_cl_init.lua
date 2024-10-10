@@ -202,5 +202,3 @@ hook.Add( "FinishChat", "CFC_AttentionMonitor_ChatboxClose", function()
         net.WriteBool( false )
     net.SendToServer()
 end )
-
--- Mainmenu detection
