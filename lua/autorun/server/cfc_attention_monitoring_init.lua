@@ -27,10 +27,9 @@ end
 
 net.Receive( "CFC_AttentionMonitor", function( _, ply )
     local eventType = net.ReadUInt( 3 )
-    if not CFCAttentionMonitor.Enums[eventType] then return end
+    if not CFCAttentionMonitor.EnumsReverse[eventType] then return end
 
     local active = net.ReadBool()
-
     if not active then
         if not CFCAttentionMonitor.PlayerStatuses[ply] then return end
         CFCAttentionMonitor.PlayerStatuses[ply][eventType] = nil
