@@ -21,24 +21,21 @@ local isAlive = plyMeta.Alive
 local entMeta = FindMetaTable( "Entity" )
 local isDormant = entMeta.IsDormant
 local getRenderMode = entMeta.GetRenderMode
-local lookupAttachment = entMeta.LookupAttachment
-local getAttachment = entMeta.GetAttachment
-local getPos = entMeta.GetPos
+local lookupBone = entMeta.LookupBone
+local getBoneMatrix = entMeta.GetBoneMatrix
 local isValid = entMeta.IsValid
 
-local isTabbedOut = false
-local icon = Material( "icon16/monitor.png", "3D mips" )
-
 local spriteBoneOffset = Vector( 0, 0, 15 )
-local spriteOffset = Vector( 0, 0, 75 )
 local fadeColor = Color( 255, 255, 255, 255 )
 local fadeStart = 1250 ^ 2
 local fadeEnd = 1750 ^ 2
+local iconSize = 128
 
 local timeFont = "CFC_AM_FONT"
 local RENDERMODE_TRANSALPHA = RENDERMODE_TRANSALPHA
 
-local trackedPlayers = {}
+CFCAttentionMonitor.TrackedPlayers = CFCAttentionMonitor.TrackedPlayers or {}
+local trackedPlayers = CFCAttentionMonitor.TrackedPlayers
 
 surface.CreateFont( timeFont, {
         font = "Arial",
@@ -65,7 +62,7 @@ local function formatAfkTime( rawTime )
     return timeStr
 end
 
-local function drawIcon( ply )
+local function drawIcon( ply, iconType )
     if not isValid( ply ) then
         table.RemoveByValue( trackedPlayers, ply )
         return
@@ -76,15 +73,12 @@ local function drawIcon( ply )
     if getRenderMode( ply ) == RENDERMODE_TRANSALPHA then return end
 
     -- Position
-    local pos
-    local eyes = lookupAttachment( ply, "eyes" )
-    local attachment = getAttachment( ply, eyes )
+    local headBone = lookupBone( ply, "ValveBiped.Bip01_Head1" ) or 0
+    local matrix = getBoneMatrix( ply, headBone )
+    if not matrix then return end
 
-    if attachment then -- checks if it got the bone
-        pos = attachment.Pos + spriteBoneOffset
-    else
-        pos = getPos( ply ) + spriteOffset
-    end
+    local pos = matrix:GetTranslation()
+    pos = pos + spriteBoneOffset
 
     -- Angle
     local angle = EyeAngles()
@@ -100,16 +94,18 @@ local function drawIcon( ply )
         fadeColor.a = 255
     end
 
+    local icon = CFCAttentionMonitor.Icons[iconType]
+
     cam_Start3D2D( pos, angle, 0.05 )
         render_PushFilterMag( TEXFILTER_POINT )
         surface_SetMaterial( icon )
         surface_SetDrawColor( fadeColor )
-        surface_DrawTexturedRect( -110, -110, 220, 220 )
+        surface_DrawTexturedRect( -iconSize / 2, -iconSize / 2, iconSize, iconSize )
         render_PopFilterMag()
 
-        local afktime = CurTime() - ply:GetNW2Int( "CFC_AM_TabbedOutTime" )
+        local afktime = CurTime() - ply:GetNW2Int( "CFC_AM_Time" )
         if afktime > 60 then
-            draw_SimpleTextOutlined( formatAfkTime( afktime ), "CFC_AM_FONT", 0, 120, fadeColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1, fadeColor )
+            draw_SimpleTextOutlined( formatAfkTime( afktime ), "CFC_AM_FONT", 0, 60, fadeColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1, fadeColor )
         end
     cam_End3D2D()
 end
@@ -117,22 +113,35 @@ end
 local function drawIcons( _, _, skybox3d )
     if skybox3d then return end
 
-    for _, ply in ipairs( trackedPlayers ) do
-        drawIcon( ply )
+    for _, plyTbl in ipairs( trackedPlayers ) do
+        drawIcon( plyTbl.ply, plyTbl.type )
     end
 end
 
 hook.Add( "PostDrawTranslucentRenderables", "CFC_AttentionMonitor_AfkRenderElements", drawIcons )
 
 hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, name, _, newVal )
-    if name ~= "CFC_AM_IsTabbedOut" then return end
+    if name ~= "CFC_AM_Type" then return end
     if ent == LocalPlayer() then return end
 
-    if newVal and not table.HasValue( trackedPlayers, ent ) then
-        table.insert( trackedPlayers, ent )
-    else
-        table.RemoveByValue( trackedPlayers, ent )
+    if newVal == 0 then
+        for i, plyTbl in ipairs( trackedPlayers ) do
+            if plyTbl.ply == ent then
+                table.remove( trackedPlayers, i )
+                return
+            end
+        end
+        return
     end
+
+    for _, plyTbl in ipairs( trackedPlayers ) do
+        if plyTbl.ply == ent then
+            plyTbl.type = newVal
+            return
+        end
+    end
+
+    table.insert( trackedPlayers, { ply = ent, type = newVal } )
 end )
 
 gameevent.Listen( "OnRequestFullUpdate" )
@@ -142,13 +151,56 @@ hook.Add( "OnRequestFullUpdate", "CFC_AttentionMonitor", function( data )
     trackedPlayers = {}
 end )
 
-timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.25, 0, function()
+-- Tabbed out detection
+local lastTabbedOut = false
+local lastMainmenu = false
+timer.Create( "CFC_AttentionMonitor_TabNetTimmer", 0.2, 0, function()
     local hasFocus = HasFocus()
-    if isTabbedOut == hasFocus then return end
+    if lastTabbedOut ~= hasFocus then
+        net.Start( "CFC_AttentionMonitor" )
+            net.WriteUInt( CFCAttentionMonitor.Enums.TabbedOut, 3 )
+            net.WriteBool( not hasFocus )
+        net.SendToServer()
+        lastTabbedOut = hasFocus
+        return
+    end
 
-    net.Start( "CFC_AttentionMonitor_GameHasFocus" )
-        net.WriteBool( hasFocus )
+    if lastMainmenu ~= gui.IsGameUIVisible() then
+        net.Start( "CFC_AttentionMonitor" )
+            net.WriteUInt( CFCAttentionMonitor.Enums.Mainmenu, 3 )
+            net.WriteBool( gui.IsGameUIVisible() )
+        net.SendToServer()
+        lastMainmenu = gui.IsGameUIVisible()
+        return
+    end
+end )
+
+-- Spawnmenu detection
+hook.Add( "SpawnMenuOpened", "CFC_AttentionMonitor_SpawnMenuOpen", function()
+    net.Start( "CFC_AttentionMonitor" )
+        net.WriteUInt( CFCAttentionMonitor.Enums.Spawnmenu, 3 )
+        net.WriteBool( true )
     net.SendToServer()
+end )
 
-    isTabbedOut = hasFocus
+hook.Add( "OnSpawnMenuClose", "CFC_AttentionMonitor_SpawnMenuClose", function()
+    net.Start( "CFC_AttentionMonitor" )
+        net.WriteUInt( CFCAttentionMonitor.Enums.Spawnmenu, 3 )
+        net.WriteBool( false )
+    net.SendToServer()
+end )
+
+-- Chatbox detection
+hook.Add( "StartChat", "CFC_AttentionMonitor_ChatboxOpen", function()
+    net.Start( "CFC_AttentionMonitor" )
+        net.WriteUInt( CFCAttentionMonitor.Enums.Chatbox, 3 )
+        net.WriteBool( true )
+    net.SendToServer()
+end )
+
+hook.Add( "FinishChat", "CFC_AttentionMonitor_ChatboxClose", function()
+    net.Start( "CFC_AttentionMonitor" )
+        net.WriteUInt( CFCAttentionMonitor.Enums.Chatbox, 3 )
+        net.WriteBool( false )
+    net.SendToServer()
 end )

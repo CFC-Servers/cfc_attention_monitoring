@@ -1,22 +1,70 @@
-util.AddNetworkString( "CFC_AttentionMonitor_GameHasFocus" )
+util.AddNetworkString( "CFC_AttentionMonitor" )
 
-CFCAttentionMonitor = { pendingFocusChanges = {} }
-local pendingFocusChanges = CFCAttentionMonitor.pendingFocusChanges
+CFCAttentionMonitor = CFCAttentionMonitor or {}
+CFCAttentionMonitor.PlayerStatuses = {}
 
 hook.Add( "PlayerDisconnected", "CFC_AttentionMonitor_CleanupPlayerData", function( ply )
-    pendingFocusChanges[ply] = nil
+    CFCAttentionMonitor.PlayerStatuses[ply] = nil
 end )
 
-local function focusCallback( _, ply )
-    pendingFocusChanges[ply] = not net.ReadBool()
+local function sync( ply )
+    local plyTable = CFCAttentionMonitor.PlayerStatuses[ply]
+    local hasStatus = false
+    for i = 1, CFCAttentionMonitor.EnumCount do
+        if plyTable[i] then
+            ply:SetNW2Int( "CFC_AM_Type", i )
+            ply:SetNW2Int( "CFC_AM_Time", CurTime() )
+            hasStatus = true
+
+            break
+        end
+    end
+
+    if not hasStatus then
+        ply:SetNW2Int( "CFC_AM_Type", 0 )
+    end
 end
 
-timer.Create( "CFC_AttentionMonitor_DataTimer", 0.25, 0, function()
-    for ply, isTabbedOut in pairs( pendingFocusChanges ) do
-        ply:SetNW2Bool( "CFC_AM_IsTabbedOut", isTabbedOut )
-        ply:SetNW2Int( "CFC_AM_TabbedOutTime", CurTime() )
-        pendingFocusChanges[ply] = nil
-    end
-end )
+-- Leaky bucket rate limiting
+local buffer = 50 -- total in the bucket
+local refill = 8 -- per second
+local function rateLimit( ply )
+    if not ply.CFC_AM_RateLimitBucket then ply.CFC_AM_RateLimitBucket = buffer end
 
-net.Receive( "CFC_AttentionMonitor_GameHasFocus", focusCallback )
+    local curTime = CurTime()
+    if not ply.CFC_AM_RatelimitTime then ply.CFC_AM_RatelimitTime = curTime end
+
+    local dripSize = curTime - ply.CFC_AM_RatelimitTime
+    ply.CFC_AM_RatelimitTime = curTime
+
+    local drip = dripSize * refill
+    local newVal = ply.CFC_AM_RateLimitBucket + drip
+
+    ply.CFC_AM_RateLimitBucket = math.Clamp( newVal, 0, buffer )
+
+    if ply.CFC_AM_RateLimitBucket >= 1 then
+        ply.CFC_AM_RateLimitBucket = ply.CFC_AM_RateLimitBucket - 1
+        return true
+    else
+        return false
+    end
+end
+
+net.Receive( "CFC_AttentionMonitor", function( _, ply )
+    if not rateLimit( ply ) then return end
+
+    local eventType = net.ReadUInt( 3 )
+    if not CFCAttentionMonitor.EnumsReverse[eventType] then return end
+
+    local active = net.ReadBool()
+    if not active then
+        if not CFCAttentionMonitor.PlayerStatuses[ply] then return end
+        CFCAttentionMonitor.PlayerStatuses[ply][eventType] = nil
+        sync( ply )
+        return
+    end
+
+    CFCAttentionMonitor.PlayerStatuses[ply] = CFCAttentionMonitor.PlayerStatuses[ply] or {}
+    CFCAttentionMonitor.PlayerStatuses[ply][eventType] = true
+    sync( ply )
+end )
