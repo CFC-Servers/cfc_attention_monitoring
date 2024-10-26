@@ -14,6 +14,8 @@ local render_PopFilterMag = render.PopFilterMag
 local TEXT_ALIGN_CENTER = TEXT_ALIGN_CENTER
 local TEXT_ALIGN_TOP = TEXT_ALIGN_TOP
 local TEXFILTER_POINT = TEXFILTER.POINT
+local scrH = ScrH()
+local scrW = ScrW()
 
 local plyMeta = FindMetaTable( "Player" )
 local isAlive = plyMeta.Alive
@@ -44,6 +46,11 @@ surface.CreateFont( timeFont, {
         weight = 1
     }
 )
+
+hook.Add( "OnScreenSizeChanged", "CFC_AttentionMonitor", function()
+    scrH = ScrH()
+    scrW = ScrW()
+end )
 
 local function formatAfkTime( rawTime )
     local timeStr = ""
@@ -79,6 +86,14 @@ local function drawIcon( ply, iconType )
 
     local pos = matrix:GetTranslation()
     pos = pos + spriteBoneOffset
+
+    local screenPos = pos:ToScreen()
+    if not screenPos.visible then return end
+
+    local x = screenPos.x
+    if x < 0 or x > scrW then return end
+    local y = screenPos.y
+    if y < 0 or y > scrH then return end
 
     -- Angle
     local angle = EyeAngles()
