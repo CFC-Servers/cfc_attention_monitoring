@@ -69,7 +69,9 @@ local function formatAfkTime( rawTime )
     return timeStr
 end
 
-local function drawIcon( ply, iconType )
+local function drawIcon( plyTbl, eyePos, angle )
+    local ply = plyTbl.ply
+
     if not isValid( ply ) then
         table.RemoveByValue( trackedPlayers, ply )
         return
@@ -85,7 +87,11 @@ local function drawIcon( ply, iconType )
     if not matrix then return end
 
     local pos = matrix:GetTranslation()
-    pos = pos + spriteBoneOffset
+    pos:Add( spriteBoneOffset )
+
+    -- Fade, checked before screen projection so distant players get skipped early
+    local dist = pos:DistToSqr( eyePos )
+    if dist > fadeEnd then return end
 
     local screenPos = pos:ToScreen()
     if not screenPos.visible then return end
@@ -95,21 +101,13 @@ local function drawIcon( ply, iconType )
     local y = screenPos.y
     if y < 0 or y > scrH then return end
 
-    -- Angle
-    local angle = EyeAngles()
-    angle:RotateAroundAxis( angle:Right(), 90 )
-    angle:RotateAroundAxis( -angle:Up(), 90 )
-
-    -- Fade
-    local dist = pos:DistToSqr( EyePos() )
-    if dist > fadeEnd then return end
     if dist > fadeStart then
         fadeColor.a = 255 * ( 1 - ( dist / fadeEnd ) )
     else
         fadeColor.a = 255
     end
 
-    local icon = CFCAttentionMonitor.Icons[iconType]
+    local icon = CFCAttentionMonitor.Icons[plyTbl.type]
 
     cam_Start3D2D( pos, angle, 0.05 )
         render_PushFilterMag( TEXFILTER_POINT )
@@ -120,16 +118,31 @@ local function drawIcon( ply, iconType )
 
         local afktime = CurTime() - ply:GetNW2Int( "CFC_AM_Time" )
         if afktime > 60 then
-            draw_SimpleTextOutlined( formatAfkTime( afktime ), "CFC_AM_FONT", 0, 60, fadeColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1, fadeColor )
+            local minutes = math_floor( afktime / 60 )
+            if plyTbl.afkMinutes ~= minutes then
+                plyTbl.afkMinutes = minutes
+                plyTbl.timeStr = formatAfkTime( afktime )
+            end
+
+            draw_SimpleTextOutlined( plyTbl.timeStr, "CFC_AM_FONT", 0, 60, fadeColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1, fadeColor )
         end
     cam_End3D2D()
 end
 
 local function drawIcons( _, _, skybox3d )
     if skybox3d then return end
+    if not trackedPlayers[1] then return end
+
+    local eyePos = EyePos()
+    local angle = EyeAngles()
+    angle:RotateAroundAxis( angle:Right(), 90 )
+
+    local up = angle:Up()
+    up:Negate()
+    angle:RotateAroundAxis( up, 90 )
 
     for _, plyTbl in ipairs( trackedPlayers ) do
-        drawIcon( plyTbl.ply, plyTbl.type )
+        drawIcon( plyTbl, eyePos, angle )
     end
 end
 
