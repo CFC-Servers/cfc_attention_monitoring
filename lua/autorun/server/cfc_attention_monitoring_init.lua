@@ -13,7 +13,7 @@ local function getHighestStatus( statuses )
 end
 
 local function broadcastStatus( ply, statusType, statusTime )
-    net.Start( "cfc_attentionmonitor" )
+    net.Start( "cfc_attentionmonitor", true )
         net.WriteUInt( ply:EntIndex(), MAX_PLAYER_BITS )
         net.WriteUInt( statusType, 3 )
         if statusType ~= 0 then
@@ -43,7 +43,7 @@ hook.Add( "PlayerInitialSpawn", "CFC_AttentionMonitor_SendSnapshot", function( j
         local plyStatuses = plyTable.statuses
         local newType, _startTime = getHighestStatus( plyStatuses )
 
-        net.Start( "cfc_attentionmonitor" )
+        net.Start( "cfc_attentionmonitor", true )
             net.WriteUInt( ply:EntIndex(), MAX_PLAYER_BITS )
             net.WriteUInt( newType, 3 )
             if newType ~= 0 then
