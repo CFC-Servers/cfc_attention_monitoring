@@ -1,63 +1,33 @@
-util.AddNetworkString( "cfc_attentionmonitor" )
+util.AddNetworkString( "CFC_AttentionMonitor" )
 
 CFCAttentionMonitor = CFCAttentionMonitor or {}
-CFCAttentionMonitor.PlayerStatuses = CFCAttentionMonitor.PlayerStatuses or {}
-
--- Get the highest priority active status for a player
-local function getHighestStatus( statuses )
-    for i = 1, CFCAttentionMonitor.EnumCount do
-        if statuses[i] then return i, statuses[i] end
-    end
-
-    return 0, 0
-end
-
-local function broadcastStatus( ply, statusType, statusTime )
-    net.Start( "cfc_attentionmonitor", true )
-        net.WriteUInt( ply:EntIndex(), MAX_PLAYER_BITS )
-        net.WriteUInt( statusType, 3 )
-        if statusType ~= 0 then
-            net.WriteFloat( statusTime )
-        end
-    net.Broadcast()
-end
-
-local function sync( ply )
-    local plyStatusTable = CFCAttentionMonitor.PlayerStatuses[ply]
-    local plyStatuses = plyStatusTable.statuses
-
-    local newType, startTime = getHighestStatus( plyStatuses )
-    if newType == plyStatusTable.lastSentType then return end
-    plyStatusTable.lastSentType = newType
-
-    if newType == 0 then
-        broadcastStatus( ply, 0, 0 )
-        return
-    end
-
-    broadcastStatus( ply, newType, startTime )
-end
-
-hook.Add( "PlayerInitialSpawn", "CFC_AttentionMonitor_SendSnapshot", function( joiningPly )
-    for ply, plyTable in pairs( CFCAttentionMonitor.PlayerStatuses ) do
-        local plyStatuses = plyTable.statuses
-        local newType, _startTime = getHighestStatus( plyStatuses )
-
-        net.Start( "cfc_attentionmonitor", true )
-            net.WriteUInt( ply:EntIndex(), MAX_PLAYER_BITS )
-            net.WriteUInt( newType, 3 )
-            if newType ~= 0 then
-                net.WriteFloat( _startTime )
-            end
-        net.Send( joiningPly )
-    end
-end )
+CFCAttentionMonitor.PlayerStatuses = {}
 
 hook.Add( "PlayerDisconnected", "CFC_AttentionMonitor_CleanupPlayerData", function( ply )
-    broadcastStatus( ply, 0, 0 )
-
     CFCAttentionMonitor.PlayerStatuses[ply] = nil
 end )
+
+hook.Add( "PlayerInitialSpawn", "CFC_AttentionMonitor_SyncOnSpawn", function( ply )
+    ply:SetNW2Int( "cfc_am_type", 0 )
+end )
+
+local function sync( ply )
+    local plyTable = CFCAttentionMonitor.PlayerStatuses[ply]
+    local hasStatus = false
+    for i = 1, CFCAttentionMonitor.EnumCount do
+        if plyTable[i] then
+            ply:SetNW2Int( "cfc_am_type", i )
+            ply:SetNW2Int( "cfc_am_time", CurTime() )
+            hasStatus = true
+
+            break
+        end
+    end
+
+    if not hasStatus then
+        ply:SetNW2Int( "cfc_am_type", 0 )
+    end
+end
 
 -- Leaky bucket rate limiting
 local buffer = 50 -- total in the bucket
@@ -90,19 +60,15 @@ net.Receive( "cfc_attentionmonitor", function( _, ply )
     local eventType = net.ReadUInt( 3 )
     if not CFCAttentionMonitor.EnumsReverse[eventType] then return end
 
-    local plyTable = CFCAttentionMonitor.PlayerStatuses[ply] or { lastSentType = 0, statuses = {} }
-    CFCAttentionMonitor.PlayerStatuses[ply] = plyTable
-
     local active = net.ReadBool()
-    local plyStatuses = plyTable.statuses
-
-    if active then
-        if plyStatuses[eventType] then return end
-        plyStatuses[eventType] = CurTime()
-    else
-        if not plyStatuses[eventType] then return end
-        plyStatuses[eventType] = nil
+    if not active then
+        if not CFCAttentionMonitor.PlayerStatuses[ply] then return end
+        CFCAttentionMonitor.PlayerStatuses[ply][eventType] = nil
+        sync( ply )
+        return
     end
 
+    CFCAttentionMonitor.PlayerStatuses[ply] = CFCAttentionMonitor.PlayerStatuses[ply] or {}
+    CFCAttentionMonitor.PlayerStatuses[ply][eventType] = true
     sync( ply )
 end )
