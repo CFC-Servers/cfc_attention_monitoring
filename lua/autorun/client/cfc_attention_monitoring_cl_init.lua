@@ -153,7 +153,7 @@ hook.Add( "PostDrawTranslucentRenderables", "CFC_AttentionMonitor_AfkRenderEleme
 
 hook.Add( "EntityNetworkedVarChanged", "CFC_AttentionMonitor", function( ent, name, _, newVal )
     if name ~= "cfc_am_type" then return end
-    -- if ent == LocalPlayer() then return end
+    if ent == LocalPlayer() then return end
 
     if newVal == 0 then
         for i, plyTbl in ipairs( trackedPlayers ) do
