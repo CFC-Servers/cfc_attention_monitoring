@@ -119,7 +119,7 @@ local function drawIcon( plyTbl, eyePos, angle )
         surface_DrawTexturedRect( -iconSize / 2, -iconSize / 2, iconSize, iconSize )
         render_PopFilterMag()
 
-        local afktime = CurTime() - ply:GetNW2Int( "CFC_AM_Time" )
+        local afktime = CurTime() - ply:GetNW2Int( "cfc_am_time" )
         if afktime > 60 then
             local minutes = math_floor( afktime / 60 )
             if plyTbl.afkMinutes ~= minutes then
